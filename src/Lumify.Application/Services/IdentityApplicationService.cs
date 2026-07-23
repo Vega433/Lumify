@@ -118,6 +118,36 @@ namespace Lumify.Application.Services
             return user.ToAuthResponse(accessToken, refreshToken);
         }
 
+        public async Task<AuthResponse> RefreshAsync(string refreshToken, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(refreshToken))
+                throw new InvalidOperationException("Invalid refresh token");
+
+            User? user = await _context.Users
+                .FirstOrDefaultAsync(u => u.RefreshToken != null && u.RefreshToken.Token == refreshToken, ct);
+
+            if (user?.RefreshToken == null || user.RefreshToken.IsExpired)
+                throw new InvalidOperationException("Invalid or expired refresh token");
+
+            string accessToken = _tokenService.GenerateAccessToken(user.ToAuthDto());
+            string newRefreshToken = _tokenService.GenerateRefreshToken();
+
+            user.UpdateToken(newRefreshToken);
+            await _context.SaveChangesAsync(ct);
+
+            return user.ToAuthResponse(accessToken, newRefreshToken);
+        }
+
+        public async Task LogoutAsync(Guid userId, CancellationToken ct)
+        {
+            User? user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId, ct);
+            if (user == null)
+                return;
+
+            user.ClearRefreshToken();
+            await _context.SaveChangesAsync(ct);
+        }
+
         private static bool ValidateAvatarExtension(string ex) =>
             new[] { ".jpg", ".png", ".jpeg", ".webp" }.Contains(ex);
     }

@@ -95,10 +95,11 @@ Swagger UI: [http://localhost:5247](http://localhost:5247)
 ## Пример сценария
 
 1. `POST /api/auth/register` — регистрация (multipart: `userName`, `email`, `password`, `birthDate` в формате `YYYY-MM-DD`)
-2. `POST /api/auth/login` — получение `accessToken`
-3. В Swagger: **Authorize** → вставить access token (без слова Bearer, если поле само добавляет схему)
-4. `POST /api/videos/Upload` — загрузка файла
+2. `POST /api/auth/login` — получение `accessToken` и `refreshToken`
+3. В Swagger: **Authorize** → вставить **только** `accessToken` (без слова `Bearer`, без `refreshToken`)
+4. `POST /api/videos` — загрузка файла
 5. `GET /api/videos/{id}` — ожидание статуса `Ready` или `Failed`
+6. При необходимости: `POST /api/auth/refresh` с телом `{ "refreshToken": "..." }`
 
 ## Ограничения текущего scope
 

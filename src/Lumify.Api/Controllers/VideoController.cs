@@ -1,4 +1,5 @@
 ﻿using Lumify.Application.DTOs;
+using Lumify.Application.Models;
 using Lumify.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Lumify.Api.Controllers
 {
     [ApiController]
-    [Route("api/[Controller]")]
+    [Route("api/videos")]
     public class VideoController : BaseController
     {
         private readonly VideoApplicationService _service;
@@ -14,9 +15,12 @@ namespace Lumify.Api.Controllers
         public VideoController(VideoApplicationService service) => _service = service;
 
         [Authorize]
-        [HttpPost("Upload")]
+        [HttpPost]
         [RequestSizeLimit(512 * 1024 * 1024)]
         [Consumes("multipart/form-data")]
+        [ProducesResponseType(typeof(VideoDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<VideoDto>> UploadVideo(
             IFormFile video,
             IFormFile? preview,
@@ -24,11 +28,17 @@ namespace Lumify.Api.Controllers
             [FromForm] string? description,
             CancellationToken ct)
         {
+            if (UserId == Guid.Empty)
+                return Unauthorized("Invalid access token claims");
+
             if (video == null || video.Length == 0)
                 return BadRequest("file not selected");
 
+            if (string.IsNullOrWhiteSpace(title))
+                return BadRequest("title is required");
+
             UploadVideoRequest request = new UploadVideoRequest(
-                title, 
+                title,
                 description,
                 UserId,
                 video.OpenReadStream(),
@@ -40,9 +50,13 @@ namespace Lumify.Api.Controllers
             try
             {
                 VideoDto result = await _service.UploadAsync(request, ct);
-                return Ok(result);
+                return Created($"/api/videos/{result.VideoId}", result);
             }
             catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -74,14 +88,23 @@ namespace Lumify.Api.Controllers
 
         [Authorize]
         [HttpDelete("{videoId:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteVideoById(Guid videoId, CancellationToken ct)
         {
-            bool deleted = await _service.DeleteVideoById(videoId, UserId, ct);
+            if (UserId == Guid.Empty)
+                return Unauthorized();
 
-            if (!deleted)
-                return Forbid("Video not found or access denied");
+            VideoDeleteResult result = await _service.DeleteVideoById(videoId, UserId, ct);
 
-            return NoContent();
+            return result switch
+            {
+                VideoDeleteResult.NotFound => NotFound(),
+                VideoDeleteResult.Forbidden => Forbid(),
+                VideoDeleteResult.Deleted => NoContent(),
+                _ => StatusCode(StatusCodes.Status500InternalServerError)
+            };
         }
     }
 }

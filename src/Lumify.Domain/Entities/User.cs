@@ -72,5 +72,7 @@ namespace Lumify.Domain.Entities
         public void RemoveAvatar() => AvatarPath = null;
 
         public void UpdateToken(string token) => RefreshToken = RefreshToken.Create(token);
+
+        public void ClearRefreshToken() => RefreshToken = null;
     }
 }

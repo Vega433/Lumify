@@ -1,6 +1,7 @@
 ﻿using Lumify.Application.DTOs;
 using Lumify.Application.Extensions;
 using Lumify.Application.Interfaces;
+using Lumify.Application.Models;
 using Lumify.Domain.Entities;
 using Lumify.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -27,9 +28,16 @@ namespace Lumify.Application.Services
             return users.Select(u => u.ToDto()).ToList();
         }
 
-        public async Task<bool> DeleteUserAsync(Guid userId, Guid currentUserId, CancellationToken ct)
+        public async Task<UserDto?> GetUserByIdAsync(Guid userId, CancellationToken ct)
         {
-            if (userId != currentUserId) return false; 
+            User? user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId == userId, ct);
+            return user?.ToDto();
+        }
+
+        public async Task<UserDeleteResult> DeleteUserAsync(Guid userId, Guid currentUserId, CancellationToken ct)
+        {
+            if (userId != currentUserId)
+                return UserDeleteResult.Forbidden;
 
             using IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync(ct);
             string? avatarPath;
@@ -37,7 +45,8 @@ namespace Lumify.Application.Services
             try
             {
                 User? user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId == userId, ct);
-                if (user == null) return true; 
+                if (user == null)
+                    return UserDeleteResult.NotFound;
 
                 avatarPath = user.AvatarPath;
                 _dbContext.Users.Remove(user);
@@ -47,7 +56,7 @@ namespace Lumify.Application.Services
             catch
             {
                 await transaction.RollbackAsync(ct);
-                throw; 
+                return UserDeleteResult.Failed;
             }
 
             if (!string.IsNullOrEmpty(avatarPath))
@@ -59,8 +68,7 @@ namespace Lumify.Application.Services
                 catch (IOException) { }
             }
 
-            return true;
+            return UserDeleteResult.Deleted;
         }
-
     }
 }

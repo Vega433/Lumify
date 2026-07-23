@@ -6,12 +6,12 @@ namespace Lumify.Application.DTOs
         Guid VideoId,
         string Title,
         string? Description,
-        string VideoFile, // ДЛЯ ОТЛАДКИ 
-        string? PreviewFile, // ДЛЯ ОТЛАДКИ 
+        string VideoUrl,
+        string? PreviewUrl,
         Guid AuthorId,
         DateTime UploadAt,
         long Views,
         TimeSpan Duration,
-        Status Status // ДЛЯ ОТЛАДКИ 
+        Status Status
         );
 }

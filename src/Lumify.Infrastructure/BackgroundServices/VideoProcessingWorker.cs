@@ -104,6 +104,9 @@ namespace Lumify.Infrastructure.BackgroundServices
 
             _logger.LogInformation("Processing {VideoId}", task.VideoId);
 
+            video.UpdateStatus(Status.Processing);
+            await db.SaveChangesAsync(ct);
+
             string finalVideoPath = Path.Combine(_uploadsRoot, "processed", $"{task.VideoId}.mp4");
             string finalPreviewPath = Path.Combine(_uploadsRoot, "previews", $"{task.VideoId}.jpg");
 

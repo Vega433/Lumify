@@ -24,17 +24,17 @@ namespace Lumify.Domain.Entities
 
         private Video() { }
 
-        public Video(Guid authorId, string title, string? decsription, string? previewExtension, bool isSharing = false)
+        public Video(Guid authorId, string title, string? description, string? previewExtension, bool isSharing = false)
         {
             VideoId = Guid.NewGuid();
             AuthorId = authorId;
             VideoFileName = $"{VideoId}.mp4";
             Title = !string.IsNullOrWhiteSpace(title) ? title : throw new ArgumentException("The title cannot be empty");
 
-            if (decsription != null && decsription.Length > 1000)
+            if (description != null && description.Length > 1000)
                 throw new ArgumentException("description is too long");
             else
-                Description = decsription ?? null;
+                Description = description ?? null;
 
             UploadAt = DateTime.UtcNow;
             Views = 0;
@@ -63,7 +63,7 @@ namespace Lumify.Domain.Entities
             Description = string.IsNullOrWhiteSpace(newDescription) ? null : newDescription;
         }
 
-        public void like() => Likes++;
+        public void Like() => Likes++;
 
         public void UpdateStatus(Status newStatus) => Status = newStatus;
 

@@ -20,31 +20,33 @@ namespace Lumify.Infrastructure.Services
 
         public string GenerateAccessToken(UserAuthDto authDto)
         {
-            // NameIdentifier — то, что потом читает BaseController
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, authDto.UserId.ToString()),
+            // Short JWT claim names only — MapInboundClaims is false, so they stay as-is.
+            List<Claim> claims =
+            [
                 new Claim(JwtRegisteredClaimNames.Sub, authDto.UserId.ToString()),
-                new Claim(ClaimTypes.Email, authDto.Email),
                 new Claim(JwtRegisteredClaimNames.Email, authDto.Email),
                 new Claim("username", authDto.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+            ];
 
-            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-            SigningCredentials credit = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            SymmetricSecurityKey key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor {
+            SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
+            {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddMinutes(30),
                 Issuer = _configuration["Jwt:Issuer"],
                 Audience = _configuration["Jwt:Audience"],
-                SigningCredentials = credit
+                SigningCredentials = credentials
             };
 
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
+            // Prevent outbound remapping of claim types (keeps sub/email as short names).
+            tokenHandler.MapInboundClaims = false;
 
+            SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
 
@@ -53,7 +55,6 @@ namespace Lumify.Infrastructure.Services
             byte[] randomNumber = new byte[32];
             using RandomNumberGenerator rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
-
             return Convert.ToBase64String(randomNumber);
         }
     }
