@@ -1,113 +1,69 @@
 # Lumify
 
-REST API сервиса загрузки и обработки видео.
+REST API для загрузки и обработки видео: JWT, PostgreSQL, фоновый worker с FFmpeg.
 
-Проект демонстрирует backend на ASP.NET Core: аутентификация JWT, работа с PostgreSQL через EF Core, асинхронная обработка медиафайлов в фоновом воркере (`BackgroundService` + `Channel`) с использованием FFmpeg.
+## Стек
 
-## Возможности
-
-- Регистрация и вход (JWT access + refresh token)
-- Загрузка видео (multipart/form-data)
-- Фоновая транскодировка и генерация превью
-- Получение списка видео и статуса обработки (`Pending` / `Ready` / `Failed`)
-- Удаление собственного видео
-
-Документация и ручное тестирование — через **Swagger UI** (отдельного фронтенда нет).
-
-## Технологии
-
-| Компонент | Технология |
-|-----------|------------|
-| Runtime | .NET 10, ASP.NET Core |
-| ORM | Entity Framework Core |
+| | |
+|---|---|
+| Runtime | .NET 10 / ASP.NET Core |
+| ORM | EF Core |
 | БД | PostgreSQL |
-| Auth | JWT Bearer |
+| Auth | JWT (access + refresh) |
 | Медиа | FFmpeg (FFMpegCore) |
-| Инфра | Docker Compose (только PostgreSQL) |
-
-## Архитектура
 
 ```
 src/
-  Lumify.Api              HTTP-слой, Swagger, DI
-  Lumify.Application      бизнес-сценарии, DTO, интерфейсы
-  Lumify.Domain           сущности и value objects
-  Lumify.Infrastructure   EF Core, хранилище файлов, FFmpeg, worker
+  Lumify.Api
+  Lumify.Application
+  Lumify.Domain
+  Lumify.Infrastructure
 ```
 
 ## Требования
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- FFmpeg и FFprobe в системном `PATH`
+- FFmpeg и FFprobe в `PATH` (`winget install --id Gyan.FFmpeg`)
 
-Установка FFmpeg (Windows):
-
-```bash
-winget install --id Gyan.FFmpeg
-```
-
-После установки перезапустите терминал и убедитесь, что команды доступны:
-
-```bash
-ffmpeg -version
-ffprobe -version
-```
-
-При необходимости путь к бинарникам задаётся в конфигурации:
+Опционально путь к бинарникам:
 
 ```json
-"FFmpeg": {
-  "BinaryFolder": "D:\\Programs\\ffmpeg"
-}
+"FFmpeg": { "BinaryFolder": "D:\\Programs\\ffmpeg" }
 ```
 
-## Быстрый старт
-
-Все команды выполняются из корня репозитория.
-
-### 1. PostgreSQL
+## Запуск
 
 ```bash
 docker compose up -d
-docker compose ps
-```
-
-Контейнер `lumify-db` должен быть в статусе `healthy`.  
-Порт хоста: **5433** (чтобы не конфликтовать с локальным PostgreSQL на 5432).
-
-Параметры подключения по умолчанию:
-
-```
-Host=localhost;Port=5433;Database=lumify;Username=lumify;Password=lumify
-```
-
-### 2. API
-
-```bash
 dotnet run --project src/Lumify.Api
 ```
 
-При старте автоматически применяются EF-миграции.
+- PostgreSQL: `localhost:5433` (`lumify` / `lumify` / `lumify`)
+- Swagger: http://localhost:5247
+- Миграции применяются при старте API
 
-Swagger UI: [http://localhost:5247](http://localhost:5247)
+Если схема БД устарела:
 
-## Пример сценария
+```bash
+docker compose down -v && docker compose up -d
+```
 
-1. `POST /api/auth/register` — регистрация (multipart: `userName`, `email`, `password`, `birthDate` в формате `YYYY-MM-DD`)
-2. `POST /api/auth/login` — получение `accessToken` и `refreshToken`
-3. В Swagger: **Authorize** → вставить **только** `accessToken` (без слова `Bearer`, без `refreshToken`)
-4. `POST /api/videos` — загрузка файла
-5. `GET /api/videos/{id}` — ожидание статуса `Ready` или `Failed`
-6. При необходимости: `POST /api/auth/refresh` с телом `{ "refreshToken": "..." }`
+## API
 
-## Ограничения текущего scope
+| Метод | Путь | Описание |
+|-------|------|----------|
+| POST | `/api/auth/register` | Регистрация (`multipart/form-data`) |
+| POST | `/api/auth/login` | Вход → `accessToken`, `refreshToken` |
+| POST | `/api/auth/refresh` | Обновление токенов |
+| POST | `/api/auth/logout` | Выход (нужен Bearer) |
+| POST | `/api/videos` | Загрузка видео (Bearer) |
+| GET | `/api/videos` | Список |
+| GET | `/api/videos/{id}` | По id (статус: `Pending` / `Processing` / `Ready` / `Failed`) |
+| DELETE | `/api/videos/{id}` | Удаление своего видео (Bearer) |
+| GET | `/api/users` | Список пользователей |
+| GET | `/api/users/{id}` | Пользователь по id |
 
-- UI отсутствует; взаимодействие через Swagger / HTTP-клиент
-- Очередь обработки — in-memory (`System.Threading.Channels`), без внешнего брокера
-- Сущность Comments присутствует в модели БД, публичного API для комментариев пока нет
-- JWT-секреты в `appsettings` предназначены только для локальной разработки
+В Swagger → **Authorize** вставляй только значение `accessToken` (без `Bearer`).
 
-## Лицензия
-
-Учебный / pet-проект. Используйте по своему усмотрению.
+Register fields: `userName`, `email`, `password`, `birthDate` (`YYYY-MM-DD`), опционально `avatar`.

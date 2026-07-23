@@ -22,6 +22,9 @@ namespace Lumify.Domain.ValueObjects
         // для чтения из БД — без повторной валидации возраста
         public static BirthDate FromDatabase(DateTime date) => new BirthDate(date);
 
+        public static BirthDate FromDatabase(DateOnly date) =>
+            new BirthDate(date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
+
         public static BirthDate Create(DateTime date, int minAge = User.MIN_AGE)
         {
             DateTime normalized = date.Date;

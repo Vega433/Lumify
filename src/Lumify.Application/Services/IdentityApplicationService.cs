@@ -34,10 +34,15 @@ namespace Lumify.Application.Services
                 throw new ArgumentException("Password must be at least 6 characters");
 
             string email = Email.Create(request.Email).Value;
+            string userName = request.UserName.Trim();
 
             bool emailBusy = await _context.Users.AnyAsync(u => u.Email == email, ct);
             if (emailBusy)
                 throw new InvalidOperationException($"A user with this email: {email} is already registered.");
+
+            bool userNameBusy = await _context.Users.AnyAsync(u => u.UserName == userName, ct);
+            if (userNameBusy)
+                throw new InvalidOperationException($"A user with this username: {userName} is already registered.");
 
             string? savedAvatarName = null;
 
@@ -47,7 +52,7 @@ namespace Lumify.Application.Services
                 string passwordHash = _hasher.Hash(request.Password);
 
                 User user = new User(
-                    request.UserName.Trim(),
+                    userName,
                     email,
                     request.BirthDate,
                     passwordHash,

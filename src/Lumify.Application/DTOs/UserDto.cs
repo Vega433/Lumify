@@ -4,7 +4,8 @@
         Guid UserId,
         string UserName,
         string Email,
-        DateTime BirthDate,
+        string? AvatarUrl,
+        DateOnly BirthDate,
         DateTime CreatedAt
     );
 }

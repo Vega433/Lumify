@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Lumify.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260723120107_InitialCreate")]
+    [Migration("20260723220540_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -29,126 +29,165 @@ namespace Lumify.Infrastructure.Migrations
                 {
                     b.Property<Guid>("CommentId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("comment_id");
 
                     b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("author_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_modified_at");
 
                     b.Property<Guid?>("ParentCommentId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_comment_id");
 
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("text");
 
                     b.Property<Guid>("VideoId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("video_id");
 
-                    b.HasKey("CommentId");
+                    b.HasKey("CommentId")
+                        .HasName("pk_comments");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("AuthorId")
+                        .HasDatabaseName("ix_comments_author_id");
 
-                    b.HasIndex("ParentCommentId");
+                    b.HasIndex("ParentCommentId")
+                        .HasDatabaseName("ix_comments_parent_comment_id");
 
-                    b.HasIndex("VideoId");
+                    b.HasIndex("VideoId")
+                        .HasDatabaseName("ix_comments_video_id");
 
-                    b.ToTable("Comments");
+                    b.ToTable("comments", (string)null);
                 });
 
             modelBuilder.Entity("Lumify.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("UserId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
 
                     b.Property<string>("AvatarPath")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("avatar_path");
 
-                    b.Property<DateTime>("BirthDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("BirthDate");
+                    b.Property<DateOnly>("BirthDate")
+                        .HasColumnType("date")
+                        .HasColumnName("birth_date");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
-                        .HasColumnName("Email");
+                        .HasColumnName("email");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
 
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("user_name");
 
-                    b.HasKey("UserId");
+                    b.HasKey("UserId")
+                        .HasName("pk_users");
 
                     b.HasIndex("Email")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_email");
 
-                    b.ToTable("Users");
+                    b.HasIndex("UserName")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_user_name");
+
+                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("Lumify.Domain.Entities.Video", b =>
                 {
                     b.Property<Guid>("VideoId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("video_id");
 
                     b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("author_id");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("description");
 
                     b.Property<long>("Duration")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("duration");
 
                     b.Property<bool>("IsSharing")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_sharing");
 
                     b.Property<long>("Likes")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("likes");
 
                     b.Property<string>("PreviewFileName")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("preview_file_name");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("title");
 
                     b.Property<DateTime>("UploadAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("upload_at");
 
                     b.Property<string>("VideoFileName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("video_file_name");
 
                     b.Property<long>("Views")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("views");
 
-                    b.HasKey("VideoId");
+                    b.HasKey("VideoId")
+                        .HasName("pk_videos");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("AuthorId")
+                        .HasDatabaseName("ix_videos_author_id");
 
-                    b.ToTable("Videos");
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_videos_status");
+
+                    b.ToTable("videos", (string)null);
                 });
 
             modelBuilder.Entity("Lumify.Domain.Entities.Comment", b =>
@@ -156,19 +195,22 @@ namespace Lumify.Infrastructure.Migrations
                     b.HasOne("Lumify.Domain.Entities.User", "Author")
                         .WithMany("Comments")
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_comments_users_author_id");
 
                     b.HasOne("Lumify.Domain.Entities.Comment", "ParentComment")
                         .WithMany("Replies")
                         .HasForeignKey("ParentCommentId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_comments_comments_parent_comment_id");
 
                     b.HasOne("Lumify.Domain.Entities.Video", "Video")
                         .WithMany("Comments")
                         .HasForeignKey("VideoId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_comments_videos_video_id");
 
                     b.Navigation("Author");
 
@@ -182,27 +224,29 @@ namespace Lumify.Infrastructure.Migrations
                     b.OwnsOne("Lumify.Domain.ValueObjects.RefreshToken", "RefreshToken", b1 =>
                         {
                             b1.Property<Guid>("UserId")
-                                .HasColumnType("uuid");
+                                .HasColumnType("uuid")
+                                .HasColumnName("user_id");
 
                             b1.Property<DateTime>("CreatedAt")
                                 .HasColumnType("timestamp with time zone")
-                                .HasColumnName("RefreshTokenCreatedAt");
+                                .HasColumnName("refresh_token_created_at");
 
                             b1.Property<DateTime>("ExpiresAt")
                                 .HasColumnType("timestamp with time zone")
-                                .HasColumnName("RefreshTokenExpiresAt");
+                                .HasColumnName("refresh_token_expires_at");
 
                             b1.Property<string>("Token")
                                 .IsRequired()
                                 .HasColumnType("text")
-                                .HasColumnName("RefreshToken");
+                                .HasColumnName("refresh_token");
 
                             b1.HasKey("UserId");
 
-                            b1.ToTable("Users");
+                            b1.ToTable("users");
 
                             b1.WithOwner()
-                                .HasForeignKey("UserId");
+                                .HasForeignKey("UserId")
+                                .HasConstraintName("fk_users_users_user_id");
                         });
 
                     b.Navigation("RefreshToken");
@@ -214,7 +258,8 @@ namespace Lumify.Infrastructure.Migrations
                         .WithMany("Videos")
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_videos_users_author_id");
 
                     b.Navigation("User");
                 });

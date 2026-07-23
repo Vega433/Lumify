@@ -9,9 +9,12 @@ namespace Lumify.Application.Extensions
             user.UserId,
             user.UserName,
             user.Email,
-            user.BirthDate.Value,
+            string.IsNullOrEmpty(user.AvatarPath)
+                ? null
+                : $"/uploads/avatars/{user.AvatarPath}",
+            DateOnly.FromDateTime(user.BirthDate.Value),
             user.CreatedAt
-                );
+            );
 
         public static UserAuthDto ToAuthDto(this User user) => new UserAuthDto(
             user.UserId,

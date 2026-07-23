@@ -8,19 +8,19 @@ namespace Lumify.Domain.ValueObjects
 
         private Email(string value) => Value = value;
 
-        public static Email Create (string email)
+        public static Email Create(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentNullException("Email cannot be empty", nameof(email));
+                throw new ArgumentException("Email cannot be empty", nameof(email));
 
             try
             {
                 MailAddress address = new MailAddress(email);
-                return new Email(address.Address.ToLower().Trim());
+                return new Email(address.Address.ToLowerInvariant().Trim());
             }
-            catch
+            catch (FormatException)
             {
-                throw new ArgumentException("Invalid email format");
+                throw new ArgumentException("Invalid email format", nameof(email));
             }
         }
     }

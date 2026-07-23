@@ -19,7 +19,8 @@ FFmpegSetup.ConfigureFrom(builder.Configuration);
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 512 * 1024 * 1024);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+        .UseSnakeCaseNamingConvention());
 
 builder.Services.AddScoped<ILumifyDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
