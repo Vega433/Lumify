@@ -1,0 +1,31 @@
+## build
+bin/
+obj/
+out/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## ide / tooling
+.vs/
+.idea/
+.dotnet/
+*.swp
+*~
+
+## secrets / local config
+appsettings.*.local.json
+**/secrets.json
+
+## runtime stuff
+**/wwwroot/uploads/temp/*
+**/wwwroot/uploads/processed/*
+**/wwwroot/uploads/previews/*
+**/wwwroot/uploads/avatars/*
+!**/wwwroot/uploads/**/.gitkeep
+
+## os
+Thumbs.db
+Desktop.ini
+.DS_Store

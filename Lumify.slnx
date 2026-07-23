@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/Lumify.Api/Lumify.Api.csproj" />
+  <Project Path="src/Lumify.Application/Lumify.Application.csproj" />
+  <Project Path="src/Lumify.Domain/Lumify.Domain.csproj" />
+  <Project Path="src/Lumify.Infrastructure/Lumify.Infrastructure.csproj" />
+</Solution>
