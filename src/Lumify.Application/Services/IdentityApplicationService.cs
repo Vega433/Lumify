@@ -28,7 +28,7 @@ namespace Lumify.Application.Services
             _tokenService = tokenService;
         }
 
-        public async Task<UserDto> RegisterUserAsync(RegisterUserRequest request, CancellationToken ct)
+        public async Task<UserProfileDto> RegisterUserAsync(RegisterUserRequest request, CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
                 throw new ArgumentException("Password must be at least 6 characters");
@@ -80,7 +80,7 @@ namespace Lumify.Application.Services
                 await _context.SaveChangesAsync(ct);
                 await transaction.CommitAsync(ct);
 
-                return user.ToDto();
+                return user.ToProfileDto();
             }
             catch
             {

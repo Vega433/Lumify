@@ -8,10 +8,16 @@ namespace Lumify.Application.Extensions
         public static UserDto ToDto(this User user) => new UserDto(
             user.UserId,
             user.UserName,
+            AvatarUrl(user),
+            DateOnly.FromDateTime(user.BirthDate.Value),
+            user.CreatedAt
+            );
+
+        public static UserProfileDto ToProfileDto(this User user) => new UserProfileDto(
+            user.UserId,
+            user.UserName,
             user.Email,
-            string.IsNullOrEmpty(user.AvatarPath)
-                ? null
-                : $"/uploads/avatars/{user.AvatarPath}",
+            AvatarUrl(user),
             DateOnly.FromDateTime(user.BirthDate.Value),
             user.CreatedAt
             );
@@ -26,7 +32,12 @@ namespace Lumify.Application.Extensions
             => new AuthResponse(
             accessToken,
             refreshToken,
-            user.ToDto()
+            user.ToProfileDto()
             );
+
+        private static string? AvatarUrl(User user) =>
+            string.IsNullOrEmpty(user.AvatarPath)
+                ? null
+                : $"/uploads/avatars/{user.AvatarPath}";
     }
 }

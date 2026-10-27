@@ -21,10 +21,10 @@ namespace Lumify.Api.Controllers
         /// </summary>
         [HttpPost("register")]
         [Consumes("multipart/form-data")]
-        [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<UserDto>> Register(
+        public async Task<ActionResult<UserProfileDto>> Register(
             [FromForm] string userName,
             [FromForm] string email,
             [FromForm] string password,
@@ -49,7 +49,7 @@ namespace Lumify.Api.Controllers
 
             try
             {
-                UserDto user = await _identity.RegisterUserAsync(request, ct);
+                UserProfileDto user = await _identity.RegisterUserAsync(request, ct);
                 return Created($"/api/users/{user.UserId}", user);
             }
             catch (InvalidOperationException ex)

@@ -34,6 +34,12 @@ namespace Lumify.Application.Services
             return user?.ToDto();
         }
 
+        public async Task<UserProfileDto?> GetCurrentUserAsync(Guid userId, CancellationToken ct)
+        {
+            User? user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserId == userId, ct);
+            return user?.ToProfileDto();
+        }
+
         public async Task<UserDeleteResult> DeleteUserAsync(Guid userId, Guid currentUserId, CancellationToken ct)
         {
             if (userId != currentUserId)

@@ -1,3 +1,4 @@
+using Lumify.Api.Configuration;
 using Lumify.Application.Interfaces;
 using Lumify.Application.Services;
 using Lumify.Infrastructure.BackgroundServices;
@@ -12,7 +13,18 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
+DotEnv.Load();
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+string? jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+    throw new InvalidOperationException(
+        "Jwt:Key is missing or shorter than 32 characters. Copy .env.example to .env and set Jwt__Key.");
+
+if (string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("DefaultConnection")))
+    throw new InvalidOperationException(
+        "ConnectionStrings:DefaultConnection is not set. Copy .env.example to .env.");
 
 FFmpegSetup.ConfigureFrom(builder.Configuration);
 
@@ -61,7 +73,7 @@ builder.Services.AddAuthentication(options =>
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ClockSkew = TimeSpan.Zero,
             NameClaimType = JwtRegisteredClaimNames.Sub,
             RoleClaimType = ClaimTypes.Role

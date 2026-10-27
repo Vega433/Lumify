@@ -24,6 +24,22 @@ namespace Lumify.Api.Controllers
             return Ok(users);
         }
 
+        [Authorize]
+        [HttpGet("me")]
+        [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<UserProfileDto>> GetMe(CancellationToken ct)
+        {
+            if (UserId == Guid.Empty)
+                return Unauthorized();
+
+            UserProfileDto? user = await _service.GetCurrentUserAsync(UserId, ct);
+            if (user == null)
+                return Unauthorized();
+
+            return Ok(user);
+        }
+
         [HttpGet("{userId:guid}")]
         public async Task<ActionResult<UserDto>> GetUserById(Guid userId, CancellationToken ct)
         {

@@ -15,6 +15,10 @@ out/
 *~
 
 ## secrets / local config
+.env
+.env.local
+.env.*.local
+!.env.example
 appsettings.*.local.json
 **/secrets.json
 
