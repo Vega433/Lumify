@@ -1,11 +1,10 @@
-﻿using Lumify.Application.Models;
+using Lumify.Application.Models;
 
-namespace Lumify.Application.Interfaces
+namespace Lumify.Application.Interfaces;
+
+public interface IVideoProcessingQueue
 {
-    public interface IVideoProcessingQueue
-    {
-        ValueTask QueueVideoAsync(VideoProcessingTask task);
+    ValueTask QueueVideoAsync(VideoProcessingTask task);
 
-        IAsyncEnumerable<VideoProcessingTask> ReadAllAsync(CancellationToken ct);
-    }
+    IAsyncEnumerable<VideoProcessingTask> ReadAllAsync(CancellationToken ct);
 }

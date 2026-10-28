@@ -1,10 +1,9 @@
-namespace Lumify.Application.Models
+namespace Lumify.Application.Models;
+
+public enum UserDeleteResult
 {
-    public enum UserDeleteResult
-    {
-        Deleted,
-        NotFound,
-        Forbidden,
-        Failed
-    }
+    Deleted,
+    NotFound,
+    Forbidden,
+    Failed
 }

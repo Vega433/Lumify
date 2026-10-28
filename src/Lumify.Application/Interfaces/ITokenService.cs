@@ -1,11 +1,10 @@
-﻿using Lumify.Application.DTOs;
+using Lumify.Application.DTOs;
 
-namespace Lumify.Application.Interfaces
+namespace Lumify.Application.Interfaces;
+
+public interface ITokenService
 {
-    public interface ITokenService
-    {
-        string GenerateAccessToken(UserAuthDto auth);
+    string GenerateAccessToken(UserAuthDto auth);
 
-        string GenerateRefreshToken();
-    }
+    string GenerateRefreshToken();
 }

@@ -1,74 +1,83 @@
-﻿using Lumify.Domain.Enums;
+using Lumify.Domain.Enums;
 
-namespace Lumify.Domain.Entities
+namespace Lumify.Domain.Entities;
+
+public class Video
 {
-    public class Video
+    public Guid VideoId { get; private set; }
+    public Guid AuthorId { get; private set; }
+    public string VideoFileName { get; private set; } = null!;
+    public string? PreviewFileName { get; private set; }
+    public string Title { get; private set; } = null!;
+    public string? Description { get; private set; }
+    public DateTime UploadAt { get; private set; }
+    public long Views { get; private set; }
+    public bool IsSharing { get; private set; }
+    public long Likes { get; private set; }
+    public TimeSpan Duration { get; private set; }
+    public Status Status { get; private set; }
+
+    private readonly List<Comment> _comments = new();
+    public IReadOnlyCollection<Comment> Comments => _comments.AsReadOnly();
+
+    public virtual User User { get; private set; } = null!;
+
+    private Video() { }
+
+    public Video(Guid authorId, string title, string? description, string? previewExtension, bool isSharing = false)
     {
-        public Guid VideoId { get; private set; }
-        public Guid AuthorId { get; private set; }
-        public string VideoFileName { get; private set; } = null!;
-        public string? PreviewFileName { get; private set; }
-        public string Title { get; private set; } = null!;
-        public string? Description { get; private set; }
-        public DateTime UploadAt { get; private set; }
-        public long Views { get; private set; }
-        public bool IsSharing { get; private set; }
-        public long Likes { get; private set; }
-        public TimeSpan Duration { get; private set; }
-        public Status Status { get; private set; }
-
-        private readonly List<Comment> _comments = new List<Comment>();
-        public IReadOnlyCollection<Comment> Comments => _comments.AsReadOnly();
-
-        public virtual User User { get; private set; } = null!;
-
-        private Video() { }
-
-        public Video(Guid authorId, string title, string? description, string? previewExtension, bool isSharing = false)
+        if (string.IsNullOrWhiteSpace(title))
         {
-            VideoId = Guid.NewGuid();
-            AuthorId = authorId;
-            VideoFileName = $"{VideoId}.mp4";
-            Title = !string.IsNullOrWhiteSpace(title) ? title : throw new ArgumentException("The title cannot be empty");
-
-            if (description != null && description.Length > 1000)
-                throw new ArgumentException("description is too long");
-            else
-                Description = description ?? null;
-
-            UploadAt = DateTime.UtcNow;
-            Views = 0;
-            PreviewFileName = !string.IsNullOrEmpty(previewExtension) ? $"{VideoId}{previewExtension}" : null;
-            IsSharing = isSharing;
-            Likes = 0;
-            Duration = TimeSpan.Zero;
-            Status = Status.Created;
+            throw new ArgumentException("The title cannot be empty");
         }
 
-        public void AddView() => Views++;
-
-        public void UploadTitle(string newTitle)
+        if (description != null && description.Length > 1000)
         {
-            if (string.IsNullOrWhiteSpace(newTitle))
-                throw new ArgumentException("The title cannot be empty");
-
-            Title = newTitle;
+            throw new ArgumentException("Description is too long");
         }
 
-        public void UploadDescription(string? newDescription)
-        {
-            if (newDescription?.Length > 1000)
-                throw new ArgumentException("Description is too long");
+        VideoId = Guid.NewGuid();
+        AuthorId = authorId;
+        VideoFileName = $"{VideoId}.mp4";
+        Title = title;
+        Description = description;
 
-            Description = string.IsNullOrWhiteSpace(newDescription) ? null : newDescription;
+        UploadAt = DateTime.UtcNow;
+        Views = 0;
+        PreviewFileName = !string.IsNullOrEmpty(previewExtension) ? $"{VideoId}{previewExtension}" : null;
+        IsSharing = isSharing;
+        Likes = 0;
+        Duration = TimeSpan.Zero;
+        Status = Status.Created;
+    }
+
+    public void AddView() => Views++;
+
+    public void UploadTitle(string newTitle)
+    {
+        if (string.IsNullOrWhiteSpace(newTitle))
+        {
+            throw new ArgumentException("The title cannot be empty");
         }
 
-        public void Like() => Likes++;
+        Title = newTitle;
+    }
 
-        public void UpdateStatus(Status newStatus) => Status = newStatus;
+    public void UploadDescription(string? newDescription)
+    {
+        if (newDescription?.Length > 1000)
+        {
+            throw new ArgumentException("Description is too long");
+        }
 
-        public void SetPreview(string extension = ".jpg") => PreviewFileName = $"{VideoId}{extension}";
+        Description = string.IsNullOrWhiteSpace(newDescription) ? null : newDescription;
+    }
 
-        public void SetDuration(TimeSpan duration) => Duration = duration;
-    } 
+    public void Like() => Likes++;
+
+    public void UpdateStatus(Status newStatus) => Status = newStatus;
+
+    public void SetPreview(string extension = ".jpg") => PreviewFileName = $"{VideoId}{extension}";
+
+    public void SetDuration(TimeSpan duration) => Duration = duration;
 }

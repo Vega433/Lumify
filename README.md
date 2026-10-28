@@ -58,13 +58,8 @@ dotnet run --project src/Lumify.Api
 
 - PostgreSQL: `localhost:${POSTGRES_PORT}` (по умолчанию 5433)
 - Swagger: http://localhost:5247
-- Миграции применяются при старте API
 
-Если схема БД устарела:
-
-```bash
-docker compose down -v && docker compose up -d
-```
+Схема БД при старте не создаётся: миграций в репозитории нет.
 
 ## API
 
@@ -75,8 +70,9 @@ docker compose down -v && docker compose up -d
 | POST | `/api/auth/refresh` | Обновление токенов |
 | POST | `/api/auth/logout` | Выход (нужен Bearer) |
 | POST | `/api/videos` | Загрузка видео (Bearer) |
-| GET | `/api/videos` | Список |
+| GET | `/api/videos` | Лента: `{ recommended, recent }` только `Ready` (`?limit=24`, max 48) |
 | GET | `/api/videos/{id}` | По id (статус: `Pending` / `Processing` / `Ready` / `Failed`) |
+| GET | `/api/videos/author/{id}` | Видео автора |
 | DELETE | `/api/videos/{id}` | Удаление своего видео (Bearer) |
 | GET | `/api/users` | Список (без email) |
 | GET | `/api/users/me` | Свой профиль с email (Bearer) |

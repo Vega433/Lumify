@@ -4,71 +4,78 @@ using Lumify.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Lumify.Api.Controllers
+namespace Lumify.Api.Controllers;
+
+[ApiController]
+[Route("api/users")]
+public class UsersController : BaseController
 {
-    [ApiController]
-    [Route("api/users")]
-    public class UsersController : BaseController
+    private readonly UserApplicationService _service;
+
+    public UsersController(UserApplicationService service)
     {
-        private readonly UserApplicationService _service;
+        _service = service;
+    }
 
-        public UsersController(UserApplicationService service)
+    [HttpGet]
+    public async Task<ActionResult<List<UserDto>>> GetUsers(CancellationToken ct)
+    {
+        List<UserDto> users = await _service.GetUsersAsync(ct);
+        return Ok(users);
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<UserProfileDto>> GetMe(CancellationToken ct)
+    {
+        if (UserId == Guid.Empty)
         {
-            _service = service;
+            return Unauthorized();
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<UserDto>>> GetUsers(CancellationToken ct)
+        UserProfileDto? user = await _service.GetCurrentUserAsync(UserId, ct);
+        if (user == null)
         {
-            List<UserDto> users = await _service.GetUsersAsync(ct);
-            return Ok(users);
+            return Unauthorized();
         }
 
-        [Authorize]
-        [HttpGet("me")]
-        [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<UserProfileDto>> GetMe(CancellationToken ct)
+        return Ok(user);
+    }
+
+    [HttpGet("{userId:guid}")]
+    public async Task<ActionResult<UserDto>> GetUserById(Guid userId, CancellationToken ct)
+    {
+        UserDto? user = await _service.GetUserByIdAsync(userId, ct);
+        if (user == null)
         {
-            if (UserId == Guid.Empty)
-                return Unauthorized();
-
-            UserProfileDto? user = await _service.GetCurrentUserAsync(UserId, ct);
-            if (user == null)
-                return Unauthorized();
-
-            return Ok(user);
+            return NotFound();
         }
 
-        [HttpGet("{userId:guid}")]
-        public async Task<ActionResult<UserDto>> GetUserById(Guid userId, CancellationToken ct)
-        {
-            UserDto? user = await _service.GetUserByIdAsync(userId, ct);
-            if (user == null)
-                return NotFound();
+        return Ok(user);
+    }
 
-            return Ok(user);
+    [Authorize]
+    [HttpDelete("{userId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeleteUserById(Guid userId, CancellationToken ct)
+    {
+        if (UserId == Guid.Empty)
+        {
+            return Unauthorized();
         }
 
-        [Authorize]
-        [HttpDelete("{userId:guid}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> DeleteUserById(Guid userId, CancellationToken ct)
+        UserDeleteResult result = await _service.DeleteUserAsync(userId, UserId, ct);
+
+        return result switch
         {
-            if (UserId == Guid.Empty)
-                return Unauthorized();
-
-            UserDeleteResult result = await _service.DeleteUserAsync(userId, UserId, ct);
-
-            return result switch
-            {
-                UserDeleteResult.NotFound => NotFound(),
-                UserDeleteResult.Forbidden => Forbid(),
-                UserDeleteResult.Deleted => NoContent(),
-                _ => StatusCode(StatusCodes.Status500InternalServerError)
-            };
-        }
+            UserDeleteResult.NotFound => NotFound(),
+            UserDeleteResult.Forbidden => Forbid(),
+            UserDeleteResult.Deleted => NoContent(),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
     }
 }

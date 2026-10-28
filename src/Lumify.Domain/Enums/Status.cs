@@ -1,11 +1,10 @@
-﻿namespace Lumify.Domain.Enums
+namespace Lumify.Domain.Enums;
+
+public enum Status
 {
-    public enum Status
-    {
-        Created,
-        Pending,
-        Processing,
-        Ready,
-        Failed
-    }
+    Created,
+    Pending,
+    Processing,
+    Ready,
+    Failed
 }

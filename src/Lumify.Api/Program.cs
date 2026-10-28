@@ -1,4 +1,7 @@
-using Lumify.Api.Configuration;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using dotenv.net;
 using Lumify.Application.Interfaces;
 using Lumify.Application.Services;
 using Lumify.Infrastructure.BackgroundServices;
@@ -6,25 +9,35 @@ using Lumify.Infrastructure.Media;
 using Lumify.Infrastructure.Persistence;
 using Lumify.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
-DotEnv.Load();
+DotEnv.Load(options: new DotEnvOptions(
+    ignoreExceptions: true,
+    probeForEnv: true,
+    probeLevelsToSearch: 6,
+    overwriteExistingVars: false,
+    trimValues: true,
+    supportExportSyntax: true,
+    supportVariableExpansion: false));
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 string? jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+{
     throw new InvalidOperationException(
         "Jwt:Key is missing or shorter than 32 characters. Copy .env.example to .env and set Jwt__Key.");
+}
 
 if (string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("DefaultConnection")))
+{
     throw new InvalidOperationException(
         "ConnectionStrings:DefaultConnection is not set. Copy .env.example to .env.");
+}
 
 FFmpegSetup.ConfigureFrom(builder.Configuration);
 
@@ -80,6 +93,17 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .SetIsOriginAllowed(IsLocalOrigin)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -106,8 +130,20 @@ builder.Services.AddSwaggerGen(options =>
 
 WebApplication app = builder.Build();
 
-// uploads лежат в wwwroot/uploads
-app.UseStaticFiles();
+// CORS до статики: плейлист HLS тоже должен открываться, если сайт запущен не с порта API.
+app.UseCors("Frontend");
+
+// uploads лежат в wwwroot/uploads. У .m3u8 в стандартной карте типов часто нет своего MIME.
+FileExtensionContentTypeProvider contentTypes = new FileExtensionContentTypeProvider();
+contentTypes.Mappings[".m3u8"] = "application/vnd.apple.mpegurl";
+contentTypes.Mappings[".ts"] = "video/mp2t";
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = contentTypes
+});
+
+UseFrontend(app);
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -120,10 +156,43 @@ app.UseSwaggerUI(options =>
 });
 app.MapControllers();
 
-using (IServiceScope scope = app.Services.CreateScope())
+app.Run();
+
+static bool IsLocalOrigin(string origin)
 {
-    AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    if (!Uri.TryCreate(origin, UriKind.Absolute, out Uri? uri))
+    {
+        return false;
+    }
+
+    return uri.Host is "localhost" or "127.0.0.1";
 }
 
-app.Run();
+// Сайт лежит в папке frontend/ в корне репозитория и открывается как /app.
+static void UseFrontend(WebApplication app)
+{
+    string frontendPath = Path.GetFullPath(Path.Combine(
+        app.Environment.ContentRootPath,
+        "..",
+        "..",
+        "frontend"));
+
+    if (!Directory.Exists(frontendPath))
+    {
+        return;
+    }
+
+    PhysicalFileProvider files = new PhysicalFileProvider(frontendPath);
+
+    app.UseDefaultFiles(new DefaultFilesOptions
+    {
+        FileProvider = files,
+        RequestPath = "/app"
+    });
+
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = files,
+        RequestPath = "/app"
+    });
+}

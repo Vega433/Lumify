@@ -1,11 +1,10 @@
-﻿using Lumify.Api.Extensions;
+using Lumify.Api.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Lumify.Api.Controllers
+namespace Lumify.Api.Controllers;
+
+public abstract class BaseController : ControllerBase
 {
-    public abstract class BaseController : ControllerBase
-    {
-        protected Guid UserId => User.GetId();
-        protected string Email => User.GetEmail();
-    }
+    protected Guid UserId => User.GetId();
+    protected string Email => User.GetEmail();
 }

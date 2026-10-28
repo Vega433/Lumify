@@ -1,11 +1,10 @@
-namespace Lumify.Domain.Enums
+namespace Lumify.Domain.Enums;
+
+public enum Paths
 {
-    public enum Paths
-    {
-        basePath,
-        tempPath,
-        processedPath,
-        previewPath,
-        avatarPath
-    }
+    Base,
+    Temp,
+    Processed,
+    Preview,
+    Avatar
 }

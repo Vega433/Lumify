@@ -1,11 +1,9 @@
-﻿using Lumify.Domain.Enums;
+using Lumify.Domain.Enums;
 
-namespace Lumify.Application.Interfaces
+namespace Lumify.Application.Interfaces;
+
+public interface IFileStorageService
 {
-    public interface IFileStorageService
-    {
-        Task<string> SaveFileAsync(Stream stream, Guid id, string fileEx, Paths targetPath, CancellationToken ct);
-        void DeleteFile(string fileName, Paths targetPath);
-    }
-
+    Task<string> SaveFileAsync(Stream stream, Guid id, string extension, Paths targetPath, CancellationToken ct);
+    void DeleteFile(string fileName, Paths targetPath);
 }

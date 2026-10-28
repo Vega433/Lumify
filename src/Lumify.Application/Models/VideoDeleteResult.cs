@@ -1,10 +1,9 @@
-namespace Lumify.Application.Models
+namespace Lumify.Application.Models;
+
+public enum VideoDeleteResult
 {
-    public enum VideoDeleteResult
-    {
-        Deleted,
-        NotFound,
-        Forbidden,
-        Failed
-    }
+    Deleted,
+    NotFound,
+    Forbidden,
+    Failed
 }

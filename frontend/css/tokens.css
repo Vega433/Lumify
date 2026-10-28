@@ -1,0 +1,18 @@
+/* Цвета и размеры. Меняешь коралл — меняешь его здесь, остальные файлы подхватят переменные. */
+:root {
+    color-scheme: light;
+    --bg: #f4f1ee;
+    --surface: #ffffff;
+    --text: #1f1a17;
+    --muted: #746c66;
+    --line: #e6dfd9;
+    --coral: #ef6f5e;
+    --coral-dark: #d85a49;
+    --coral-soft: #fff1ee;
+    --danger: #9f2d22;
+    --ok: #2f6f4e;
+    --radius: 14px;
+    --header: 60px;
+    --max: 1080px;
+    --shadow: 0 8px 24px rgba(80, 48, 40, 0.06);
+}

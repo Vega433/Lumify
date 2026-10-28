@@ -1,7 +1,6 @@
-namespace Lumify.Application.DTOs
-{
-    public record AuthUserRequest(
-        string Email,
-        string Password
-        );
-}
+namespace Lumify.Application.DTOs;
+
+public record AuthUserRequest(
+    string Email,
+    string Password
+    );

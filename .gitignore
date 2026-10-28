@@ -33,3 +33,7 @@ appsettings.*.local.json
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+## local notes
+kanban.md
+HowFrontendWork.md
