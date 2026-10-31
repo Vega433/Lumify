@@ -54,18 +54,18 @@ string webRoot = builder.Environment.WebRootPath
 string uploadsPath = Path.Combine(webRoot, "uploads");
 Directory.CreateDirectory(uploadsPath);
 
-// builder.Services.AddSingleton<IVideoProcessingQueue, VideoProcessingQueue>();
+builder.Services.AddSingleton<IVideoProcessingQueue, VideoProcessingQueue>();
 builder.Services.AddSingleton<IFileStorageService>(_ => new LocalFileStorageService(uploadsPath));
 
-/* builder.Services.AddHostedService(sp => new VideoProcessingWorker(
+builder.Services.AddHostedService(sp => new VideoProcessingWorker(
     sp.GetRequiredService<IVideoProcessingQueue>(),
     sp.GetRequiredService<IServiceScopeFactory>(),
     sp.GetRequiredService<ILogger<VideoProcessingWorker>>(),
-    uploadsPath)); */
+    uploadsPath)); 
 builder.Services.AddScoped<VideoApplicationService>();
 builder.Services.AddScoped<UserApplicationService>();
 builder.Services.AddScoped<IdentityApplicationService>();
-// builder.Services.AddScoped<IMediaService, FFMpegService>();
+builder.Services.AddScoped<IMediaService, FFMpegService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
@@ -129,6 +129,12 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 WebApplication app = builder.Build();
+
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 // CORS до статики: плейлист HLS тоже должен открываться, если сайт запущен не с порта API.
 app.UseCors("Frontend");

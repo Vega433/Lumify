@@ -1,6 +1,7 @@
-// Адрес API. Если сайт открыт с самого API (/app на порту 5247 или 7246), запросы идут туда же.
-const apiPort = window.location.port;
-const servedByApi = apiPort === "5247" || apiPort === "7246";
+// Сайт открыт с самого API (/app). Запросы идут на тот же адрес и порт,
+// с которого загрузилась страница: 5247 у dotnet run, 8080 у контейнера.
+// file:// — страница открыта с диска, тогда API ищется на localhost:5247.
+const servedByApi = window.location.protocol === "http:" || window.location.protocol === "https:";
 
 export const API_ORIGIN = servedByApi ? window.location.origin : "http://localhost:5247";
 

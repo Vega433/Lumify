@@ -136,7 +136,7 @@ export async function api(path, { method = "GET", json, form, auth = true, retry
     try {
         response = await fetch(`${API_ORIGIN}${path}`, { method, headers, body, cache: "no-store" });
     } catch {
-        throw new ApiError(0, "Нет связи с API. Запусти бэкенд и открой сайт по адресу http://localhost:5247/app/");
+        throw new ApiError(0, `Нет связи с API (${API_ORIGIN}). Открой сайт по адресу бэкенда, путь /app/.`);
     }
 
     if (response.status === 401 && auth && retry && session?.refreshToken) {
