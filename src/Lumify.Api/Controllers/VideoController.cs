@@ -6,10 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Lumify.Api.Controllers;
 
+
 [ApiController]
 [Route("api/videos")]
 public class VideoController : BaseController
 {
+    private const int MaxVideoUploadSize = 512 * 1024 * 1024; // 512 MB
+    
     private readonly VideoApplicationService _service;
 
     public VideoController(VideoApplicationService service)
@@ -19,7 +22,7 @@ public class VideoController : BaseController
 
     [Authorize]
     [HttpPost]
-    [RequestSizeLimit(512 * 1024 * 1024)]
+    [RequestSizeLimit(MaxVideoUploadSize)] 
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(VideoDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -32,19 +35,13 @@ public class VideoController : BaseController
         CancellationToken ct)
     {
         if (UserId == Guid.Empty)
-        {
             return Unauthorized("Invalid access token claims");
-        }
 
         if (video == null || video.Length == 0)
-        {
             return BadRequest("file not selected");
-        }
 
         if (string.IsNullOrWhiteSpace(title))
-        {
             return BadRequest("title is required");
-        }
 
         UploadVideoRequest request = new UploadVideoRequest(
             title,

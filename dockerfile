@@ -27,6 +27,15 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
+# Установка FFmpeg (выполняется под пользователем root)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
+
+# Создание папок под файлы
+RUN mkdir -p /app/wwwroot/uploads/temp && \
+    chown -R $APP_UID:$APP_UID /app/wwwroot
+
 ENV ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
 
