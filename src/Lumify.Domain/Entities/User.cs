@@ -63,6 +63,11 @@ public class User
             throw new ArgumentException("The name must contain 4 or more characters.");
         }
 
+        if (newUserName.Length > 100)
+        {
+            throw new ArgumentException("The name must contain at most 100 characters.");
+        }
+
         UserName = newUserName;
     }
 

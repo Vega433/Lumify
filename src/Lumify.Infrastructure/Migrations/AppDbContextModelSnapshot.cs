@@ -187,6 +187,29 @@ namespace Lumify.Infrastructure.Migrations
                     b.ToTable("videos", (string)null);
                 });
 
+            modelBuilder.Entity("Lumify.Domain.Entities.VideoLike", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<Guid>("VideoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("video_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.HasKey("UserId", "VideoId")
+                        .HasName("pk_video_likes");
+
+                    b.HasIndex("VideoId")
+                        .HasDatabaseName("ix_video_likes_video_id");
+
+                    b.ToTable("video_likes", (string)null);
+                });
+
             modelBuilder.Entity("Lumify.Domain.Entities.Comment", b =>
                 {
                     b.HasOne("Lumify.Domain.Entities.User", "Author")
@@ -259,6 +282,23 @@ namespace Lumify.Infrastructure.Migrations
                         .HasConstraintName("fk_videos_users_author_id");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Lumify.Domain.Entities.VideoLike", b =>
+                {
+                    b.HasOne("Lumify.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_video_likes_users_user_id");
+
+                    b.HasOne("Lumify.Domain.Entities.Video", null)
+                        .WithMany()
+                        .HasForeignKey("VideoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_video_likes_videos_video_id");
                 });
 
             modelBuilder.Entity("Lumify.Domain.Entities.Comment", b =>

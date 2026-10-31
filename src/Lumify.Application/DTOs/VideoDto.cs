@@ -11,6 +11,7 @@ public record VideoDto(
     Guid AuthorId,
     DateTime UploadAt,
     long Views,
+    long Likes,
     TimeSpan Duration,
     Status Status
     );

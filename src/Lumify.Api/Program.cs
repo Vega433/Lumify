@@ -64,6 +64,7 @@ builder.Services.AddHostedService(sp => new VideoProcessingWorker(
     uploadsPath)); 
 builder.Services.AddScoped<VideoApplicationService>();
 builder.Services.AddScoped<UserApplicationService>();
+builder.Services.AddScoped<CommentApplicationService>();
 builder.Services.AddScoped<IdentityApplicationService>();
 builder.Services.AddScoped<IMediaService, FFMpegService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();

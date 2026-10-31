@@ -78,6 +78,114 @@ public class VideoController : BaseController
         return Ok(feed);
     }
 
+    [Authorize]
+    [HttpGet("mine")]
+    [ProducesResponseType(typeof(List<VideoDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<List<VideoDto>>> GetMyVideos(CancellationToken ct)
+    {
+        if (UserId == Guid.Empty)
+        {
+            return Unauthorized();
+        }
+
+        List<VideoDto> videos = await _service.GetMyVideosAsync(UserId, ct);
+        return Ok(videos);
+    }
+
+    [Authorize]
+    [HttpPatch("{videoId:guid}")]
+    [ProducesResponseType(typeof(VideoDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<VideoDto>> UpdateVideo(
+        Guid videoId,
+        [FromBody] UpdateVideoRequest request,
+        CancellationToken ct)
+    {
+        if (UserId == Guid.Empty)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            VideoDto? video = await _service.UpdateVideoAsync(videoId, UserId, request, ct);
+            if (video == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(video);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpPost("{videoId:guid}/view")]
+    [ProducesResponseType(typeof(VideoStatsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<VideoStatsDto>> AddView(Guid videoId, CancellationToken ct)
+    {
+        VideoStatsDto? stats = await _service.AddViewAsync(videoId, UserId, ct);
+        if (stats == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(stats);
+    }
+
+    [Authorize]
+    [HttpPost("{videoId:guid}/like")]
+    [ProducesResponseType(typeof(VideoStatsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<VideoStatsDto>> Like(Guid videoId, CancellationToken ct)
+    {
+        if (UserId == Guid.Empty)
+        {
+            return Unauthorized();
+        }
+
+        VideoStatsDto? stats = await _service.LikeAsync(videoId, UserId, ct);
+        if (stats == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(stats);
+    }
+
+    [Authorize]
+    [HttpDelete("{videoId:guid}/like")]
+    [ProducesResponseType(typeof(VideoStatsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<VideoStatsDto>> Unlike(Guid videoId, CancellationToken ct)
+    {
+        if (UserId == Guid.Empty)
+        {
+            return Unauthorized();
+        }
+
+        VideoStatsDto? stats = await _service.UnlikeAsync(videoId, UserId, ct);
+        if (stats == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(stats);
+    }
+
     [HttpGet("{videoId:guid}")]
     public async Task<ActionResult<VideoDto>> GetVideoById(Guid videoId, CancellationToken ct)
     {

@@ -10,6 +10,7 @@ public interface ILumifyDbContext
     DbSet<User> Users { get; }
     DbSet<Video> Videos { get; }
     DbSet<Comment> Comments { get; }
+    DbSet<VideoLike> VideoLikes { get; }
 
     DatabaseFacade Database { get; }
 

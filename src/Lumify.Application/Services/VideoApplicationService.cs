@@ -209,4 +209,132 @@ public class VideoApplicationService
             return VideoDeleteResult.Failed;
         }
     }
+
+    public async Task<List<VideoDto>> GetMyVideosAsync(Guid authorId, CancellationToken ct)
+    {
+        List<Video> videos = await _context.Videos
+            .Where(v => v.AuthorId == authorId)
+            .OrderByDescending(v => v.UploadAt)
+            .ToListAsync(ct);
+
+        return videos.Select(v => v.ToDto()).ToList();
+    }
+
+    public async Task<VideoDto?> UpdateVideoAsync(Guid videoId, Guid userId, UpdateVideoRequest request, CancellationToken ct)
+    {
+        if (request.Title == null && request.Description == null)
+        {
+            throw new ArgumentException("Title or description is required");
+        }
+
+        Video? video = await _context.Videos.FirstOrDefaultAsync(v => v.VideoId == videoId, ct);
+        if (video == null)
+        {
+            return null;
+        }
+
+        if (video.AuthorId != userId)
+        {
+            throw new UnauthorizedAccessException("You can edit only your own video");
+        }
+
+        if (request.Title != null)
+        {
+            video.UploadTitle(request.Title.Trim());
+        }
+
+        if (request.Description != null)
+        {
+            video.UploadDescription(request.Description);
+        }
+
+        await _context.SaveChangesAsync(ct);
+        return video.ToDto();
+    }
+
+    public async Task<VideoStatsDto?> AddViewAsync(Guid videoId, Guid userId, CancellationToken ct)
+    {
+        Video? video = await _context.Videos.FirstOrDefaultAsync(v => v.VideoId == videoId, ct);
+        if (video == null)
+        {
+            return null;
+        }
+
+        video.AddView();
+        await _context.SaveChangesAsync(ct);
+
+        bool likedByMe = userId != Guid.Empty && await _context.VideoLikes
+            .AnyAsync(like => like.VideoId == videoId && like.UserId == userId, ct);
+        return new VideoStatsDto(video.VideoId, video.Views, video.Likes, likedByMe);
+    }
+
+    public async Task<VideoStatsDto?> LikeAsync(Guid videoId, Guid userId, CancellationToken ct)
+    {
+        Video? video = await _context.Videos.FirstOrDefaultAsync(v => v.VideoId == videoId, ct);
+        if (video == null)
+        {
+            return null;
+        }
+
+        bool alreadyLiked = await _context.VideoLikes
+            .AnyAsync(like => like.VideoId == videoId && like.UserId == userId, ct);
+        if (alreadyLiked)
+        {
+            return new VideoStatsDto(video.VideoId, video.Views, video.Likes, true);
+        }
+
+        using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync(ct);
+        try
+        {
+            _context.VideoLikes.Add(new VideoLike(userId, videoId));
+            video.Like();
+            await _context.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+            return new VideoStatsDto(video.VideoId, video.Views, video.Likes, true);
+        }
+        catch (DbUpdateException)
+        {
+            await transaction.RollbackAsync(ct);
+            ClearTracker();
+
+            Video current = await _context.Videos.FirstAsync(v => v.VideoId == videoId, ct);
+            bool liked = await _context.VideoLikes
+                .AnyAsync(like => like.VideoId == videoId && like.UserId == userId, ct);
+            if (!liked)
+            {
+                throw;
+            }
+
+            return new VideoStatsDto(current.VideoId, current.Views, current.Likes, true);
+        }
+    }
+
+    public async Task<VideoStatsDto?> UnlikeAsync(Guid videoId, Guid userId, CancellationToken ct)
+    {
+        Video? video = await _context.Videos.FirstOrDefaultAsync(v => v.VideoId == videoId, ct);
+        if (video == null)
+        {
+            return null;
+        }
+
+        VideoLike? like = await _context.VideoLikes
+            .FirstOrDefaultAsync(item => item.VideoId == videoId && item.UserId == userId, ct);
+        if (like == null)
+        {
+            return new VideoStatsDto(video.VideoId, video.Views, video.Likes, false);
+        }
+
+        _context.VideoLikes.Remove(like);
+        video.Unlike();
+        await _context.SaveChangesAsync(ct);
+        return new VideoStatsDto(video.VideoId, video.Views, video.Likes, false);
+    }
+
+    private void ClearTracker()
+    {
+        if (_context is DbContext dbContext)
+        {
+            dbContext.ChangeTracker.Clear();
+        }
+    }
 }

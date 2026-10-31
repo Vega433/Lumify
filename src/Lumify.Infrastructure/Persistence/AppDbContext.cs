@@ -11,6 +11,7 @@ public class AppDbContext : DbContext, ILumifyDbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Video> Videos => Set<Video>();
     public DbSet<Comment> Comments => Set<Comment>();
+    public DbSet<VideoLike> VideoLikes => Set<VideoLike>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

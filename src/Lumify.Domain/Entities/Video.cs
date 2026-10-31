@@ -31,6 +31,11 @@ public class Video
             throw new ArgumentException("The title cannot be empty");
         }
 
+        if (title.Length > 200)
+        {
+            throw new ArgumentException("Title is too long");
+        }
+
         if (description != null && description.Length > 1000)
         {
             throw new ArgumentException("Description is too long");
@@ -53,11 +58,26 @@ public class Video
 
     public void AddView() => Views++;
 
+    public void Like() => Likes++;
+
+    public void Unlike()
+    {
+        if (Likes > 0)
+        {
+            Likes--;
+        }
+    }
+
     public void UploadTitle(string newTitle)
     {
         if (string.IsNullOrWhiteSpace(newTitle))
         {
             throw new ArgumentException("The title cannot be empty");
+        }
+
+        if (newTitle.Length > 200)
+        {
+            throw new ArgumentException("Title is too long");
         }
 
         Title = newTitle;
@@ -72,8 +92,6 @@ public class Video
 
         Description = string.IsNullOrWhiteSpace(newDescription) ? null : newDescription;
     }
-
-    public void Like() => Likes++;
 
     public void UpdateStatus(Status newStatus) => Status = newStatus;
 

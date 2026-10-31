@@ -17,6 +17,7 @@ public static class VideoMappingExtensions
         video.AuthorId,
         video.UploadAt,
         video.Views,
+        video.Likes,
         video.Duration,
         video.Status
         );

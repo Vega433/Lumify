@@ -120,7 +120,7 @@ public class VideoProcessingWorker : BackgroundService
         video.UpdateStatus(Status.Processing);
         await db.SaveChangesAsync(ct);
 
-        // Per-video директория: processed/{videoId}/index.m3u8 + segment_*.ts
+        // Per-video директория: processed/{videoId}/index.m3u8 (мастер) + {высота}.m3u8 и сегменты.
         string videoDir = Path.Combine(_uploadsRoot, "processed", task.VideoId.ToString());
         string playlistPath = Path.Combine(videoDir, PlaylistFileName);
         string previewDir = Path.Combine(_uploadsRoot, "previews");
@@ -343,16 +343,47 @@ public class VideoProcessingWorker : BackgroundService
                 return false;
             }
 
-            using StreamReader reader = new StreamReader(playlistPath);
-            string? line;
-            while ((line = reader.ReadLine()) != null)
+            string directory = Path.GetDirectoryName(Path.GetFullPath(playlistPath))!;
+            string[] lines = File.ReadAllLines(playlistPath);
+            bool master = lines.Any(line => line.StartsWith("#EXT-X-STREAM-INF", StringComparison.Ordinal));
+            if (!master)
             {
-                if (line.Contains(PlaylistEndMarker, StringComparison.Ordinal))
-                {
-                    return true;
-                }
+                return lines.Any(line => line.Contains(PlaylistEndMarker, StringComparison.Ordinal));
             }
-            return false;
+
+            bool hasVariant = false;
+            foreach (string raw in lines)
+            {
+                string line = raw.Trim();
+                if (line.Length == 0 || line.StartsWith('#'))
+                {
+                    continue;
+                }
+
+                string variantPath = Path.GetFullPath(Path.Combine(
+                    directory,
+                    line.Replace('/', Path.DirectorySeparatorChar)));
+                string root = directory.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+                if (!variantPath.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+
+                if (!File.Exists(variantPath))
+                {
+                    return false;
+                }
+
+                string variantText = File.ReadAllText(variantPath);
+                if (!variantText.Contains(PlaylistEndMarker, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+
+                hasVariant = true;
+            }
+
+            return hasVariant;
         }
         catch
         {
