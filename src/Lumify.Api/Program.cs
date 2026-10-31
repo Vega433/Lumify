@@ -20,7 +20,7 @@ DotEnv.Load(options: new DotEnvOptions(
     probeForEnv: true,
     probeLevelsToSearch: 6,
     overwriteExistingVars: false,
-    trimValues: true,
+    trimValues: true, 
     supportExportSyntax: true,
     supportVariableExpansion: false));
 
@@ -39,7 +39,7 @@ if (string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("Default
         "ConnectionStrings:DefaultConnection is not set. Copy .env.example to .env.");
 }
 
-FFmpegSetup.ConfigureFrom(builder.Configuration);
+// FFmpegSetup.ConfigureFrom(builder.Configuration);
 
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 512 * 1024 * 1024);
 
@@ -54,18 +54,18 @@ string webRoot = builder.Environment.WebRootPath
 string uploadsPath = Path.Combine(webRoot, "uploads");
 Directory.CreateDirectory(uploadsPath);
 
-builder.Services.AddSingleton<IVideoProcessingQueue, VideoProcessingQueue>();
+// builder.Services.AddSingleton<IVideoProcessingQueue, VideoProcessingQueue>();
 builder.Services.AddSingleton<IFileStorageService>(_ => new LocalFileStorageService(uploadsPath));
 
-builder.Services.AddHostedService(sp => new VideoProcessingWorker(
+/* builder.Services.AddHostedService(sp => new VideoProcessingWorker(
     sp.GetRequiredService<IVideoProcessingQueue>(),
     sp.GetRequiredService<IServiceScopeFactory>(),
     sp.GetRequiredService<ILogger<VideoProcessingWorker>>(),
-    uploadsPath));
+    uploadsPath)); */
 builder.Services.AddScoped<VideoApplicationService>();
 builder.Services.AddScoped<UserApplicationService>();
 builder.Services.AddScoped<IdentityApplicationService>();
-builder.Services.AddScoped<IMediaService, FFMpegService>();
+// builder.Services.AddScoped<IMediaService, FFMpegService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
@@ -168,13 +168,12 @@ static bool IsLocalOrigin(string origin)
     return uri.Host is "localhost" or "127.0.0.1";
 }
 
-// Сайт лежит в папке frontend/ в корне репозитория и открывается как /app.
+// Сайт лежит в папке Lumify.Api/wwwroot/frontend/ и открывается как /app.
 static void UseFrontend(WebApplication app)
 {
     string frontendPath = Path.GetFullPath(Path.Combine(
         app.Environment.ContentRootPath,
-        "..",
-        "..",
+        "wwwroot",
         "frontend"));
 
     if (!Directory.Exists(frontendPath))

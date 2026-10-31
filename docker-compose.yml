@@ -1,22 +1,59 @@
+
 services:
-  db:
-    image: postgres:18-alpine
-    container_name: lumify-db
+
+  # =========================
+  # ASP.NET CORE API
+  # =========================
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: lumify:local
     env_file:
       - .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-lumify}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lumify}
-      POSTGRES_DB: ${POSTGRES_DB:-lumify}
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "8080:8080"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+
+  # POSTGRESQL
+
+  db:
+    image: postgres:16
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "127.0.0.1:5432:5432"
+
     volumes:
-      - lumify_pg:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
-      timeout: 5s
+      timeout: 3s
       retries: 10
+      start_period: 5s
+
+    restart: unless-stopped
+
+
+# VOLUMES
 
 volumes:
-  lumify_pg:
+  postgres_data:
