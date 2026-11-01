@@ -2,12 +2,16 @@ import { el } from "../dom.js";
 import { formatDate } from "../format.js";
 import { createAvatar } from "./avatar.js";
 
-export function createProfileHead(user, { showPrivate = false } = {}) {
-    const row = el("div", "profile");
-    row.append(createAvatar(user));
+export function createProfileHead(user, { showPrivate = false, hero = false } = {}) {
+    const row = el("div", hero ? "profile profile--hero" : "profile");
+    row.append(createAvatar(user, hero ? "lg" : "md"));
 
     const text = el("div", "profile__text");
-    text.append(el("h1", "title", user.userName));
+    if (hero) {
+        text.append(el("p", "eyebrow", showPrivate ? "Твой профиль" : "Автор"));
+    }
+
+    text.append(el("h1", "title profile__name", user.userName));
 
     if (showPrivate && user.email) {
         text.append(el("p", "muted", user.email));

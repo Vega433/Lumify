@@ -1,6 +1,7 @@
 import { mediaUrl } from "../config.js";
 import { el } from "../dom.js";
-import { formatViews, hasDuration, formatDuration } from "../format.js";
+import { formatCount, hasDuration, formatDuration } from "../format.js";
+import { iconEye, iconHeart } from "./icons.js";
 import { createStatusBadge } from "./status-badge.js";
 
 export function createVideoCard(video, { authorName, onDelete } = {}) {
@@ -34,7 +35,13 @@ export function createVideoCard(video, { authorName, onDelete } = {}) {
     author.href = `#/user/${video.authorId}`;
     author.textContent = authorName || "Автор";
 
-    body.append(title, author, el("span", "muted", formatViews(video.views)));
+    const facts = el("p", "card__facts");
+    const views = el("span", "fact");
+    views.append(iconEye(), el("span", null, formatCount(video.views)));
+    const likes = el("span", "fact");
+    likes.append(iconHeart(), el("span", null, formatCount(video.likes)));
+    facts.append(views, likes);
+    body.append(title, author, facts);
 
     const badge = createStatusBadge(video.status, { hideReady: true });
     if (badge) {
@@ -44,7 +51,7 @@ export function createVideoCard(video, { authorName, onDelete } = {}) {
     if (onDelete) {
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "button button--danger";
+        button.className = "button button--small button--danger";
         button.textContent = "Удалить";
         button.addEventListener("click", async () => {
             if (!window.confirm(`Удалить «${video.title}»?`)) {

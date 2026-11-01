@@ -1,8 +1,13 @@
 import { mediaUrl } from "../config.js";
 import { el } from "../dom.js";
 
+const avatarClass = {
+    sm: "avatar avatar--sm",
+    lg: "avatar avatar--lg"
+};
+
 export function createAvatar(user, size = "md") {
-    const node = el("div", size === "sm" ? "avatar avatar--sm" : "avatar");
+    const node = el("div", avatarClass[size] || "avatar");
     if (user?.avatarUrl) {
         const img = document.createElement("img");
         img.src = mediaUrl(user.avatarUrl);

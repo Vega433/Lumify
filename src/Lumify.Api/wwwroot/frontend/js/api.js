@@ -19,7 +19,20 @@ const knownMessages = new Map([
     ["Unsupported file extension", "Такое изображение не принимается. Можно jpg, png или webp"],
     ["Invalid access token claims", "Сессия сломалась. Войди ещё раз"],
     ["The name must contain 4 or more characters.", "Имя должно быть не короче 4 символов"],
-    ["Birth date cannot be in the future", "Дата рождения не может быть в будущем"]
+    ["Birth date cannot be in the future", "Дата рождения не может быть в будущем"],
+    ["Nothing to update", "Нечего сохранять"],
+    ["Current password and new password are required together", "Для смены пароля нужны и текущий, и новый"],
+    ["Incorrect password", "Неверный текущий пароль"],
+    ["The title cannot be empty", "Название не может быть пустым"],
+    ["Title is too long", "Название длиннее 200 символов"],
+    ["Description is too long", "Описание длиннее 1000 символов"],
+    ["Title or description is required", "Нужно название или описание"],
+    ["text is required", "Нужен текст комментария"],
+    ["Comment cannot be empty", "Комментарий не может быть пустым"],
+    ["The comment is too long", "Комментарий длиннее 2000 символов"],
+    ["Parent comment was not found on this video", "Такого комментария у этого ролика нет"],
+    ["Replies can only target a top-level comment", "Ответить можно только на комментарий, не на ответ"],
+    ["Author not found", "Аккаунт не найден"]
 ]);
 
 function translate(message, status) {
@@ -196,11 +209,46 @@ export const videosApi = {
     byAuthor(id) {
         return api(`/api/videos/author/${id}`);
     },
+    mine() {
+        return api("/api/videos/mine");
+    },
     upload(form) {
         return api("/api/videos", { method: "POST", form });
     },
+    update(id, body) {
+        return api(`/api/videos/${id}`, { method: "PATCH", json: body });
+    },
+    addView(id) {
+        return api(`/api/videos/${id}/view`, { method: "POST" });
+    },
+    like(id) {
+        return api(`/api/videos/${id}/like`, { method: "POST" });
+    },
+    unlike(id) {
+        return api(`/api/videos/${id}/like`, { method: "DELETE" });
+    },
     remove(id) {
         return api(`/api/videos/${id}`, { method: "DELETE" });
+    }
+};
+
+export const commentsApi = {
+    list(videoId) {
+        return api(`/api/videos/${videoId}/comments`);
+    },
+    create(videoId, text, parentCommentId) {
+        const json = { text };
+        if (parentCommentId) {
+            json.parentCommentId = parentCommentId;
+        }
+
+        return api(`/api/videos/${videoId}/comments`, { method: "POST", json });
+    },
+    update(id, text) {
+        return api(`/api/comments/${id}`, { method: "PUT", json: { text } });
+    },
+    remove(id) {
+        return api(`/api/comments/${id}`, { method: "DELETE" });
     }
 };
 
@@ -213,5 +261,17 @@ export const usersApi = {
     },
     me() {
         return api("/api/users/me");
+    },
+    update(body) {
+        return api("/api/users/me", { method: "PATCH", json: body });
+    },
+    changeAvatar(form) {
+        return api("/api/users/me/avatar", { method: "PUT", form });
+    },
+    removeAvatar() {
+        return api("/api/users/me/avatar", { method: "DELETE" });
+    },
+    remove(id) {
+        return api(`/api/users/${id}`, { method: "DELETE" });
     }
 };

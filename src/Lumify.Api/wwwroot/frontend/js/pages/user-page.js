@@ -25,8 +25,10 @@ export function mountUserPage(userId) {
             document.title = `${user.userName} · Lumify`;
             const ready = (Array.isArray(videos) ? videos : []).filter((video) => isReady(video.status));
             const names = new Map([[user.userId, user.userName]]);
+            const head = el("section", "tile");
+            head.append(createProfileHead(user));
             root.replaceChildren(
-                createProfileHead(user),
+                head,
                 createSection("Видео", createVideoGrid(ready, names, {
                     emptyText: "У этого автора пока нет готовых видео"
                 }))

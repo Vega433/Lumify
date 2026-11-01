@@ -2,6 +2,7 @@ import { authApi } from "../api.js";
 import { el } from "../dom.js";
 import { navigate } from "../navigation.js";
 import { getSession } from "../session.js";
+import { createAvatar } from "./avatar.js";
 
 function isCurrent(hash) {
     const current = location.hash || "#/";
@@ -28,9 +29,7 @@ export function createHeader() {
         const nav = el("nav", "nav");
         const session = getSession();
         const links = [["#/", "Главная"]];
-        if (session) {
-            links.push(["#/me", "Моя страница"]);
-        } else {
+        if (!session) {
             links.push(["#/login", "Вход"], ["#/register", "Регистрация"]);
         }
 
@@ -48,6 +47,19 @@ export function createHeader() {
         }
 
         if (session) {
+            const me = document.createElement("a");
+            me.className = "nav__me";
+            me.href = "#/me";
+            if (isCurrent("#/me")) {
+                me.classList.add("is-active");
+                me.setAttribute("aria-current", "page");
+            }
+
+            const name = el("span", "nav__name", session.user.userName || "Профиль");
+            me.append(createAvatar(session.user, "sm"), name);
+            me.setAttribute("aria-label", session.user.userName || "Моя страница");
+            nav.append(me);
+
             const button = document.createElement("button");
             button.type = "button";
             button.className = "button button--ghost";

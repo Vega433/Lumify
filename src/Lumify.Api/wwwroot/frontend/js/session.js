@@ -28,6 +28,17 @@ export function saveSession(auth) {
     window.dispatchEvent(new Event("lumify:session"));
 }
 
+export function updateSessionUser(user) {
+    const session = getSession();
+    if (!session || !user) {
+        return;
+    }
+
+    session.user = user;
+    localStorage.setItem(storageKey, JSON.stringify(session));
+    window.dispatchEvent(new Event("lumify:session"));
+}
+
 export function clearSession() {
     localStorage.removeItem(storageKey);
     window.dispatchEvent(new Event("lumify:session"));

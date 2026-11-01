@@ -101,7 +101,20 @@ function plural(count, one, few, many) {
     return many;
 }
 
+export function formatCount(count) {
+    return (Number(count) || 0).toLocaleString("ru-RU");
+}
+
 export function formatViews(count) {
     const value = Number(count) || 0;
-    return `${value.toLocaleString("ru-RU")} ${plural(value, "просмотр", "просмотра", "просмотров")}`;
+    return `${formatCount(value)} ${plural(value, "просмотр", "просмотра", "просмотров")}`;
+}
+
+export function formatLikes(count) {
+    const value = Number(count) || 0;
+    return `${formatCount(value)} ${plural(value, "лайк", "лайка", "лайков")}`;
+}
+
+export function sameId(left, right) {
+    return String(left || "").toLowerCase() === String(right || "").toLowerCase();
 }

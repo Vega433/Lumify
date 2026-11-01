@@ -11,7 +11,9 @@
     --coral-soft: #fff1ee;
     --danger: #9f2d22;
     --ok: #2f6f4e;
-    --radius: 14px;
+    --font: "Manrope", "Segoe UI", sans-serif;
+    --display: "Unbounded", "Manrope", sans-serif;
+    --radius: 20px;
     --header: 60px;
     --max: 1080px;
     --shadow: 0 8px 24px rgba(80, 48, 40, 0.06);

@@ -47,6 +47,10 @@ export function createField(options) {
         input.max = options.max;
     }
 
+    if (options.value !== undefined && options.value !== null) {
+        input.value = options.value;
+    }
+
     wrap.append(input);
     return wrap;
 }
